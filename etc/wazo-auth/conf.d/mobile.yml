@@ -1,0 +1,2 @@
+enabled_external_auth_plugins:
+  mobile: true

@@ -1,0 +1,11 @@
+name: wazo-mobile
+namespace: official
+version: 0.0.1
+author: Wazo Team
+display_name: Mobile authentication
+plugin_format_version: 1
+min_wazo_version: 18.01
+tags:
+  - beta
+  - application
+homepage: http://www.wazo.io
