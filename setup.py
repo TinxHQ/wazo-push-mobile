@@ -24,6 +24,9 @@ setup(
     entry_points={
         'wazo_auth.external_auth': [
             'mobile = wazo_mobile.auth.plugin:Plugin',
-        ]
+        ],
+        'wazo_webhookd.services': [
+            'mobile = wazo_mobile.webhookd.plugin:Service',
+        ],
     }
 )

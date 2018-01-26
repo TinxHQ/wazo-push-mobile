@@ -1,0 +1,11 @@
+enabled_services:
+  mobile: true
+
+mobile:
+  push_server:
+    host: localhost
+    port: 8321
+  auth:
+    host: localhost
+    username:
+    password:
