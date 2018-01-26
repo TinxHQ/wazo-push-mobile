@@ -4,10 +4,6 @@
 import requests
 import logging
 
-from pulsus.client import Client
-from pulsus.services.apns import APNSNotification
-from pulsus.services.gcm import GCMJSONMessage
-
 from xivo_auth_client import Client as Auth
 
 
@@ -71,9 +67,12 @@ class PushNotification(object):
         self.token_data = token_data
 
     def send_notification(self, data):
+        from pulsus.client import Client
+        from pulsus.services.gcm import GCMJSONMessage
+
         android_message = GCMJSONMessage(
-                    registration_ids=[self.token],
-                        data=data)
+            registration_ids=[self.token],
+            data=data)
 
         client = Client(self.config['push_server']['host'], self.config['push_server']['port'])
         client.push([android_message])

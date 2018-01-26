@@ -23,6 +23,7 @@ class MobileAuth(http.AuthResource):
     auth_type = 'mobile'
 
     def __init__(self, external_auth_service, config):
+        self.external_auth_service = external_auth_service
         self.config = config
 
     @http.required_acl('auth.users.{user_uuid}.external.mobile.delete')
