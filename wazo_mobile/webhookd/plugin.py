@@ -76,3 +76,24 @@ class PushNotification(object):
 
         client = Client(self.config['push_server']['host'], self.config['push_server']['port'])
         client.push([android_message])
+
+
+class PushFCMNotification(object):
+
+    def __init__(self, external_token, token_data, config):
+        self.config = config
+        self.token = external_token
+        self.token_data = token_data
+
+    def send_notification(self, data):
+      from pyfcm import FCMNotification
+
+      push_service = FCMNotification(api_key=self.config['mobile']['fcm']['api_key'])
+
+      registration_id = self.token
+      message_title = "Wazo push notification"
+      message_body = data
+      push_service.notify_single_device(
+          registration_id=registration_id,
+          message_title=message_title,
+          message_body=message_body)

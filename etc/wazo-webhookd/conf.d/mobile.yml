@@ -5,6 +5,8 @@ mobile:
   push_server:
     host: localhost
     port: 8321
+  fcm:
+    api_key:
   auth:
     host: localhost
     username:
