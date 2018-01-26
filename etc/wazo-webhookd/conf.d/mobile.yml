@@ -6,7 +6,7 @@ mobile:
     host: localhost
     port: 8321
   fcm:
-    api_key:
+    api_key: AIzaSyDx1nBVV83jcmxk8kAAQNt0NFZj13aebXA
   auth:
     host: localhost
     username:
