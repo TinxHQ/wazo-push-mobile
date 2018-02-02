@@ -27,9 +27,17 @@ class Service:
             data = event.get('data')
             name = event.get('name')
 
+            if name == 'chat_message_received':
+               msg = {
+                 'notification_type': 'messageReceived',
+                 'items': data
+               }
+               push.send_notification(msg)
+
             if data.get('status'):
                 if 'call_id' in data:
                     if name == 'call_created' and not data.get('is_caller'):
+                        data['notification_type'] = 'incomingCall'
                         push.send_notification(data)
 
         self._callback = mobile_push_notification
