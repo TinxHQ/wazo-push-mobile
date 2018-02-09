@@ -2,11 +2,8 @@ enabled_services:
   mobile: true
 
 mobile:
-  push_server:
-    host: localhost
-    port: 8321
   fcm:
-    api_key: AIzaSyDx1nBVV83jcmxk8kAAQNt0NFZj13aebXA
+    api_key: AAAAMR6p69Q:APA91bGssQVHFrnz76YOpy3mi4HVSboQ4jC8wj3iiCPDm6VY_YD0iDXqdwAIFmHnn3_6hb0C3clGIi1HTnSKKPI5JKK7La0ix8pP20FNwsrSJtlhFWOIopPEcMARvfIaR9RtoVcyyPks
   auth:
     host: localhost
     username:
