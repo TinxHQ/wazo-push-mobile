@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+import uuid
 from pyfcm import FCMNotification
 
 from xivo_auth_client import Client as Auth
+from wazo_webhookd.plugins.subscription.service import SubscriptionService
 
 
 logging.basicConfig()
@@ -13,9 +15,21 @@ logging.basicConfig()
 class Service:
 
     def load(self, dependencies):
+        bus_consumer = dependencies['bus_consumer']
         celery_app = dependencies['celery']
         self.config = dependencies['config']['mobile']
+        self.subscription_service = SubscriptionService(dependencies['config'])
         self.token = self.get_token()
+        bus_consumer.subscribe_to_event_names(uuid=uuid.uuid4(),
+                                              event_names=['auth_user_external_auth_added'],
+                                              user_uuid=None,
+                                              wazo_uuid=None,
+                                              callback=self.on_external_auth_added)
+        bus_consumer.subscribe_to_event_names(uuid=uuid.uuid4(),
+                                              event_names=['auth_user_external_auth_deleted'],
+                                              user_uuid=None,
+                                              wazo_uuid=None,
+                                              callback=self.on_external_auth_deleted)
         print('Mobile push notification plugin is started')
 
         @celery_app.task
@@ -41,6 +55,26 @@ class Service:
                         push.send_notification(data)
 
         self._callback = mobile_push_notification
+
+    def on_external_auth_added(self, body, event):
+        if body['data'].get('external_auth_name') == 'mobile':
+            user_uuid = body['data']['user_uuid']
+            subscription = self.subscription_service.create({
+                'name': 'Push notification mobile for user {}'.format(user_uuid),
+                'service': 'mobile',
+                'events': ['call_created', 'chat_message_received'],
+                'events_user_uuid': user_uuid,
+                'owner_user_uuid': user_uuid,
+                'config': {},
+                'metadata': {'mobile': 'true'},
+            })
+
+    def on_external_auth_deleted(self, body, event):
+        if body['data'].get('external_auth_name') == 'mobile':
+            user_uuid = body['data']['user_uuid']
+            subscriptions = self.subscription_service.list(owner_user_uuid=user_uuid, search_metadata={'mobile': 'true'})
+            for subscription in subscriptions:
+                self.subscription_service.delete(subscription.uuid)
 
     def get_token(self):
         auth = Auth(
