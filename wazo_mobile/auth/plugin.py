@@ -42,7 +42,7 @@ class MobileAuth(http.AuthResource):
         if errors:
             raise exceptions.UserParamException.from_errors(errors)
 
-        logger.info('User(%s) is addong token for Mobile', str(user_uuid))
+        logger.info('Token created for User(%s) in plugin external mobile', str(user_uuid))
         data = {
             'token': args.get('token')
         }
