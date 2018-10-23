@@ -82,7 +82,7 @@ class Service:
             username=self.config['auth']['username'],
             password=self.config['auth']['password'],
             verify_certificate=False)
-        return auth.token.new('xivo_service', expiration=3600)
+        return auth.token.new('wazo_user', expiration=3600)
 
     def get_external_token(self, user_uuid):
         token = None
