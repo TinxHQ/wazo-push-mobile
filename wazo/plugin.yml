@@ -1,10 +1,10 @@
-name: wazo-mobile
+name: wazo-push-mobile
 namespace: official
-version: 0.0.1
+version: 0.0.2
 author: Wazo Team
-display_name: Mobile authentication
+display_name: Wazo Push Mobile
 plugin_format_version: 1
-min_wazo_version: 18.01
+min_wazo_version: 18.13
 tags:
   - beta
   - application
