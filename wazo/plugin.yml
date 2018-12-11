@@ -1,11 +1,13 @@
 name: wazo-push-mobile
 namespace: official
-version: 0.0.2
+version: 0.0.3
 author: Wazo Team
 display_name: Wazo Push Mobile
 plugin_format_version: 1
-min_wazo_version: 18.13
+min_wazo_version: 18.14
 tags:
   - beta
   - application
 homepage: http://www.wazo.io
+debian_depends:
+  - python3-pyfcm
