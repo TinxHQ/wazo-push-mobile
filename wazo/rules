@@ -1,15 +1,13 @@
 #!/bin/sh
-# Copyright 2017 Wazo Team (see the AUTHORS file)
+# Copyright 2017-2018 Wazo Team (see the AUTHORS file)
 # SPDX-License-Identifier: GPLv3
 
 case "$1" in
     build)
-	python setup.py bdist -d dist/python2
 	python3 setup.py bdist -d dist/python3
     ;;
 
     package)
-	tar xvf dist/python2/wazo_mobile-*.tar.gz -C ${pkgdir}
         tar xvf dist/python3/wazo_mobile-*.tar.gz -C ${pkgdir}
         cp -R etc ${pkgdir}/
     ;;

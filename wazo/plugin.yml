@@ -1,6 +1,6 @@
 name: wazo-push-mobile
 namespace: official
-version: 0.0.3
+version: 0.0.4
 author: Wazo Team
 display_name: Wazo Push Mobile
 plugin_format_version: 1

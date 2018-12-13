@@ -10,6 +10,7 @@ from wazo_webhookd.plugins.subscription.service import SubscriptionService
 
 
 logging.basicConfig()
+logger = logging.getLogger(__name__)
 
 
 class Service:
@@ -42,11 +43,11 @@ class Service:
             name = event.get('name')
 
             if name == 'chat_message_received':
-               msg = {
-                 'notification_type': 'messageReceived',
-                 'items': data
-               }
-               push.send_notification(msg)
+                msg = {
+                     'notification_type': 'messageReceived',
+                     'items': data
+                }
+                push.send_notification(msg)
 
             if data.get('status'):
                 if 'call_id' in data:
@@ -112,6 +113,9 @@ class PushNotification(object):
 
       push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
 
-      push_service.single_device_data_message(
+      notification = push_service.single_device_data_message(
           registration_id=self.token,
           data_message=data)
+
+      if notification.get('failure') != 0:
+          logger.error('Error to send push notification', notification)
