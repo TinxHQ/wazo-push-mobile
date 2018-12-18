@@ -42,6 +42,12 @@ class Service:
             data = event.get('data')
             name = event.get('name')
 
+            if name == 'call_push_notification':
+                msg = {
+                     'notification_type': 'incomingCall',
+                     'items': data
+                }
+
             if name == 'chat_message_received':
                 msg = {
                      'notification_type': 'messageReceived',
@@ -63,7 +69,7 @@ class Service:
             subscription = self.subscription_service.create({
                 'name': 'Push notification mobile for user {}'.format(user_uuid),
                 'service': 'mobile',
-                'events': ['call_created', 'chat_message_received'],
+                'events': ['call_created', 'chat_message_received', 'call_push_notification'],
                 'events_user_uuid': user_uuid,
                 'owner_user_uuid': user_uuid,
                 'config': {},
