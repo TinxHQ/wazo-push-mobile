@@ -39,6 +39,7 @@ class Service:
             token = self.get_external_token(user_uuid)['token']
             push = PushNotification(token, self.token, self.config)
 
+            msg = None
             data = event.get('data')
             name = event.get('name')
 
@@ -53,13 +54,15 @@ class Service:
                      'notification_type': 'messageReceived',
                      'items': data
                 }
-                push.send_notification(msg)
 
             if data.get('status'):
                 if 'call_id' in data:
-                    if name == 'call_created' and not data.get('is_caller'):
-                        data['notification_type'] = 'incomingCall'
-                        push.send_notification(data)
+                    if name == 'call_created' and data.get('is_caller') != True:
+                        msg = data
+                        msg['notification_type'] = 'incomingCall'
+
+            if msg:
+                push.send_notification(msg)
 
         self._callback = mobile_push_notification
 
