@@ -121,10 +121,21 @@ class PushNotification(object):
     def send_notification(self, data):
       push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
 
+      message_title=None
+      message_body=None
+
+      if data.get('notification_type') == 'messageReceived':
+          message_title=data.get('items').get('alias')
+          message_body=data.get('items').get('msg')
+
+      if data.get('notification_type') == 'incomingCall':
+          message_title='Incoming Call'
+          message_body='Call from {}'.format(data.get('peer_caller_id_number'))
+
       notification = push_service.notify_single_device(
           registration_id=self.token,
-          message_title=data.get('items').get('alias'),
-          message_body=data.get('items').get('msg'),
+          message_title=message_title,
+          message_body=message_body,
           data_message=data)
 
       if notification.get('failure') != 0:
