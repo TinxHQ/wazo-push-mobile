@@ -119,11 +119,12 @@ class PushNotification(object):
         self.token_data = token_data
 
     def send_notification(self, data):
-
       push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
 
-      notification = push_service.single_device_data_message(
+      notification = push_service.notify_single_device(
           registration_id=self.token,
+          message_title=data.get('items').get('alias'),
+          message_body=data.get('items').get('msg'),
           data_message=data)
 
       if notification.get('failure') != 0:
