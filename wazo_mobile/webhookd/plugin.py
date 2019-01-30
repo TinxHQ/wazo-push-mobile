@@ -119,24 +119,17 @@ class PushNotification(object):
         self.token_data = token_data
 
     def send_notification(self, data):
-      push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
+        push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
+        is_incoming_call = data.get('notification_type') == 'incomingCall'
 
-      message_title=None
-      message_body=None
+        notification = push_service.notify_single_device(
+            registration_id=self.token,
+            message_title='Incoming Call' if is_incoming_call else data.get('items').get('alias'),
+            message_body='Call from {}'.format(data.get('peer_caller_id_number')) if is_incoming_call else data.get('items').get('msg'),
+            extra_notification_kwargs={
+                'android_channel_id': 'wazo-notification-call' if is_incoming_call else 'wazo-notification-chat'
+            },
+            data_message=data)
 
-      if data.get('notification_type') == 'messageReceived':
-          message_title=data.get('items').get('alias')
-          message_body=data.get('items').get('msg')
-
-      if data.get('notification_type') == 'incomingCall':
-          message_title='Incoming Call'
-          message_body='Call from {}'.format(data.get('peer_caller_id_number'))
-
-      notification = push_service.notify_single_device(
-          registration_id=self.token,
-          message_title=message_title,
-          message_body=message_body,
-          data_message=data)
-
-      if notification.get('failure') != 0:
-          logger.error('Error to send push notification', notification)
+        if notification.get('failure') != 0:
+            logger.error('Error to send push notification', notification)
