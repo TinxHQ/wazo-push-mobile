@@ -125,16 +125,36 @@ class PushNotification(object):
 
     def send_notification(self, data):
         push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
+
+        message_title = None
+        message_body = None
+
         is_incoming_call = data.get('notification_type') == 'incomingCall'
+        is_voicemail = data.get('notification_type') == 'voicemailReceived'
+        is_message = data.get('notification_type') == 'messageReceived'
 
-        notification = push_service.notify_single_device(
-            registration_id=self.token,
-            message_title='Incoming Call' if is_incoming_call else data.get('items').get('alias'),
-            message_body='Call from {}'.format(data.get('peer_caller_id_number')) if is_incoming_call else data.get('items').get('msg'),
-            extra_notification_kwargs={
-                'android_channel_id': 'wazo-notification-call' if is_incoming_call else 'wazo-notification-chat'
-            },
-            data_message=data)
+        if is_incoming_call:
+            message_title = 'Incoming Call'
+            message_body = 'From: {}'.format(data.get('peer_caller_id_number'))
+            channel_id = 'wazo-notification-call'
 
-        if notification.get('failure') != 0:
-            logger.error('Error to send push notification', notification)
+        if is_voicemail:
+            message_title = 'New voicemail'
+            message_body = 'From: {}'.format(data.get('message').get('caller_id_num'))
+            channel_id = 'wazo-notification-voicemail'
+
+        if is_message:
+            message_title = data.get('items').get('alias')
+            message_body = data.get('items').get('msg')
+            channel_id = 'wazo-notification-chat'
+
+        if message_title and message_body:
+            notification = push_service.notify_single_device(
+                registration_id=self.token,
+                message_title=message_title
+                message_body=message_body
+                extra_notification_kwargs=dict(android_channel_id=channel_id),
+                data_message=data)
+
+            if notification.get('failure') != 0:
+                logger.error('Error to send push notification', notification)
