@@ -135,17 +135,17 @@ class PushNotification(object):
 
         if is_incoming_call:
             message_title = 'Incoming Call'
-            message_body = 'From: {}'.format(data.get('peer_caller_id_number'))
+            message_body = 'From: {}'.format(data['peer_caller_id_number'])
             channel_id = 'wazo-notification-call'
 
         if is_voicemail:
             message_title = 'New voicemail'
-            message_body = 'From: {}'.format(data.get('message').get('caller_id_num'))
+            message_body = 'From: {}'.format(data['items']['message']['caller_id_num'])
             channel_id = 'wazo-notification-voicemail'
 
         if is_message:
-            message_title = data.get('items').get('alias')
-            message_body = data.get('items').get('msg')
+            message_title = data['items']['alias']
+            message_body = data['items']['msg']
             channel_id = 'wazo-notification-chat'
 
         if message_title and message_body:
