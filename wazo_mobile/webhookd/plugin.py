@@ -78,7 +78,7 @@ class Service:
             subscription = self.subscription_service.create({
                 'name': 'Push notification mobile for user {}'.format(user_uuid),
                 'service': 'mobile',
-                'events': ['call_created', 'chat_message_received', 'call_push_notification'],
+                'events': ['call_created', 'chat_message_received', 'call_push_notification', 'user_voicemail_message_created'],
                 'events_user_uuid': user_uuid,
                 'owner_user_uuid': user_uuid,
                 'config': {},
@@ -151,8 +151,8 @@ class PushNotification(object):
         if message_title and message_body:
             notification = push_service.notify_single_device(
                 registration_id=self.token,
-                message_title=message_title
-                message_body=message_body
+                message_title=message_title,
+                message_body=message_body,
                 extra_notification_kwargs=dict(android_channel_id=channel_id),
                 data_message=data)
 
