@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -42,17 +42,23 @@ class Service:
             msg = None
             data = event.get('data')
             name = event.get('name')
+            
+            if name == 'user_voicemail_message_created':
+                msg = {
+                    'notification_type': 'voicemailReceived',
+                    'items': data
+                }
 
             if name == 'call_push_notification':
                 msg = {
-                     'notification_type': 'incomingCall',
-                     'items': data
+                    'notification_type': 'incomingCall',
+                    'items': data
                 }
 
             if name == 'chat_message_received':
                 msg = {
-                     'notification_type': 'messageReceived',
-                     'items': data
+                    'notification_type': 'messageReceived',
+                    'items': data
                 }
 
             if data.get('status'):
@@ -100,7 +106,6 @@ class Service:
         try:
             token = auth.external.get('mobile', user_uuid)
         except:
-            print('Request new token')
             self.token = self.get_token()
             auth = Auth(self.config['auth']['host'], verify_certificate=False, token=self.token['token'])
             token = auth.external.get('mobile', user_uuid)
