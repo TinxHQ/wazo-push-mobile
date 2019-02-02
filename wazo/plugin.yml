@@ -4,7 +4,7 @@ version: 0.0.8
 author: Wazo Team
 display_name: Wazo Push Mobile
 plugin_format_version: 1
-min_wazo_version: 19.03
+min_wazo_version: 19.02
 tags:
   - beta
   - mobile
