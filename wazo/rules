@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2017-2018 Wazo Team (see the AUTHORS file)
+# Copyright 2017-2019 Wazo Team (see the AUTHORS file)
 # SPDX-License-Identifier: GPLv3
 
 case "$1" in
@@ -15,11 +15,15 @@ case "$1" in
     install)
 	systemctl restart wazo-auth
 	systemctl restart wazo-webhookd
+	systemctl restart xivo-ctid-ng
+	asterisk -rx 'dialplan reload'
     ;;
 
     uninstall)
 	systemctl restart wazo-auth
 	systemctl restart wazo-webhookd
+	systemctl restart xivo-ctid-ng
+	asterisk -rx 'dialplan reload'
     ;;
 
     postrm)
