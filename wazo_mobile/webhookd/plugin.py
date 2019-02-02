@@ -44,28 +44,17 @@ class Service:
             name = event.get('name')
             
             if name == 'user_voicemail_message_created':
-                msg = {
-                    'notification_type': 'voicemailReceived',
-                    'items': data
-                }
+                msg = dict(notification_type='voicemailReceived', items=data)
 
             if name == 'call_push_notification':
-                msg = {
-                    'notification_type': 'incomingCall',
-                    'items': data
-                }
+                msg = dict(notification_type='incomingCall', items=data)
 
             if name == 'chat_message_received':
-                msg = {
-                    'notification_type': 'messageReceived',
-                    'items': data
-                }
+                msg = dict(notification_type='messageReceived', items=data)
 
-            if data.get('status'):
-                if 'call_id' in data:
-                    if name == 'call_created' and data.get('is_caller') != True:
-                        msg = dict(items=data)
-                        msg['notification_type'] = 'incomingCall'
+            if data.get('status') and 'call_id' in data:
+                if name == 'call_created' and data.get('is_caller') != True:
+                    msg = dict(notification_type='incomingCall', items=data)
 
             if msg:
                 push.send_notification(msg)
