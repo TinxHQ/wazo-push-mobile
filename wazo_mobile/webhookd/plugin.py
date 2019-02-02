@@ -64,7 +64,7 @@ class Service:
             if data.get('status'):
                 if 'call_id' in data:
                     if name == 'call_created' and data.get('is_caller') != True:
-                        msg = data
+                        msg = dict(items=data)
                         msg['notification_type'] = 'incomingCall'
 
             if msg:
@@ -135,7 +135,7 @@ class PushNotification(object):
 
         if is_incoming_call:
             message_title = 'Incoming Call'
-            message_body = 'From: {}'.format(data['peer_caller_id_number'])
+            message_body = 'From: {}'.format(data['items']['peer_caller_id_number'])
             channel_id = 'wazo-notification-call'
 
         if is_voicemail:
