@@ -4,6 +4,9 @@ enabled_services:
 mobile:
   fcm:
     api_key: AAAAMR6p69Q:APA91bGssQVHFrnz76YOpy3mi4HVSboQ4jC8wj3iiCPDm6VY_YD0iDXqdwAIFmHnn3_6hb0C3clGIi1HTnSKKPI5JKK7La0ix8pP20FNwsrSJtlhFWOIopPEcMARvfIaR9RtoVcyyPks
+  apn:
+    certificate_pem: /etc/wazo-webhookd/conf.d/apple_voip_push.pem
+    sandbox: false
   auth:
     host: localhost
     username:
