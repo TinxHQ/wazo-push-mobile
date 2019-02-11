@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class MobilePostSchema(schemas.BaseSchema):
 
     token = fields.String(min=1, max=512)
-    platform = fields.String(min=3, max=7)
+    apns_token = fields.String()
 
 
 class MobileAuth(http.AuthResource):
@@ -46,7 +46,7 @@ class MobileAuth(http.AuthResource):
         logger.info('Token created for User(%s) in plugin external mobile', str(user_uuid))
         data = {
             'token': args.get('token'),
-            'platform': args.get('platform')
+            'apns_token': args.get('apns_token')
         }
         self.external_auth_service.create(user_uuid, self.auth_type, data)
 
@@ -56,7 +56,7 @@ class MobileAuth(http.AuthResource):
     def _new_get_response(data):
         return {
             'token': data.get('token'),
-            'platform': args.get('platform')
+            'apns_token': args.get('apns_token')
         }, 200
 
 
