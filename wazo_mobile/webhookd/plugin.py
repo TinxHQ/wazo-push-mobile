@@ -4,6 +4,8 @@
 import logging
 import uuid
 from pyfcm import FCMNotification
+from apns2.client import APNsClient
+from apns2.payload import Payload
 
 from xivo_auth_client import Client as Auth
 from wazo_webhookd.plugins.subscription.service import SubscriptionService
@@ -36,13 +38,15 @@ class Service:
         @celery_app.task
         def mobile_push_notification(subscription, event):
             user_uuid = subscription.get('events_user_uuid')
-            token = self.get_external_token(user_uuid)['token']
-            push = PushNotification(token, self.token, self.config)
+            data = self.get_external_token(user_uuid)
+            token = data.get('token')
+            apns_token = data.get('apns_token')
+            push = PushNotification(token, self.config, apns_token)
 
             msg = None
             data = event.get('data')
             name = event.get('name')
-            
+
             if name == 'user_voicemail_message_created':
                 msg = dict(notification_type='voicemailReceived', items=data)
 
@@ -51,10 +55,6 @@ class Service:
 
             if name == 'chat_message_received':
                 msg = dict(notification_type='messageReceived', items=data)
-
-            if data.get('status') and 'call_id' in data:
-                if name == 'call_created' and data.get('is_caller') != True:
-                    msg = dict(notification_type='incomingCall', items=data)
 
             if msg:
                 push.send_notification(msg)
@@ -107,14 +107,12 @@ class Service:
 
 class PushNotification(object):
 
-    def __init__(self, external_token, token_data, config):
+    def __init__(self, external_token, config, apns_token):
         self.config = config
         self.token = external_token
-        self.token_data = token_data
+        self.apns_token = apns_token
 
     def send_notification(self, data):
-        push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
-
         message_title = None
         message_body = None
 
@@ -137,13 +135,34 @@ class PushNotification(object):
             message_body = data['items']['msg']
             channel_id = 'wazo-notification-chat'
 
-        if message_title and message_body:
-            notification = push_service.notify_single_device(
-                registration_id=self.token,
-                message_title=message_title,
-                message_body=message_body,
-                extra_notification_kwargs=dict(android_channel_id=channel_id),
-                data_message=data)
+        if self.apns_token and channel_id == 'wazo-notification-call':
+            self._send_via_apn(apsn_token, data)
+        else:
+            self._send_via_fcm(message_title, message_body, channel_id, data)
+
+    def _send_via_fcm(self, message_title, message_body, channel_id, data):
+        push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
+
+        if (message_title and message_body):
+
+            if channel_id == 'wazo-notification-call':
+                notification = push_service.notify_single_device(
+                    registration_id=self.token,
+                    data_message=data)
+            else:
+                notification = push_service.notify_single_device(
+                    registration_id=self.token,
+                    message_title=message_title,
+                    message_body=message_body,
+                    extra_notification_kwargs=dict(android_channel_id=channel_id),
+                    data_message=data)
 
             if notification.get('failure') != 0:
                 logger.error('Error to send push notification', notification)
+
+    def _send_via_apn(self, apns_token, data):
+        payload = Payload(alert=data, sound="default", badge=1)
+        client = APNsClient(self.config['apn']['certificate_pem'],
+                            use_sandbox=self.config['apn']['sandbox'],
+                            use_alternative_port=False)
+        client.send_notification(apns_token, payload)
