@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class MobilePostSchema(schemas.BaseSchema):
 
     token = fields.String(min=1, max=512)
+    platform = fields.String(min=3, max=7)
 
 
 class MobileAuth(http.AuthResource):
@@ -44,16 +45,18 @@ class MobileAuth(http.AuthResource):
 
         logger.info('Token created for User(%s) in plugin external mobile', str(user_uuid))
         data = {
-            'token': args.get('token')
+            'token': args.get('token'),
+            'platform': args.get('platform')
         }
         self.external_auth_service.create(user_uuid, self.auth_type, data)
 
-        return {'token': args.get('token')}, 201
+        return data, 201
 
     @staticmethod
     def _new_get_response(data):
         return {
-            'token': data.get('token')
+            'token': data.get('token'),
+            'platform': args.get('platform')
         }, 200
 
 
