@@ -136,7 +136,7 @@ class PushNotification(object):
             channel_id = 'wazo-notification-chat'
 
         if self.apns_token and channel_id == 'wazo-notification-call':
-            self._send_via_apn(apsn_token, data)
+            self._send_via_apn(self.apns_token, data)
         else:
             self._send_via_fcm(message_title, message_body, channel_id, data)
 
@@ -162,7 +162,7 @@ class PushNotification(object):
 
     def _send_via_apn(self, apns_token, data):
         payload = Payload(alert=data, sound="default", badge=1)
-        client = APNsClient(self.config['apn']['certificate_pem'],
-                            use_sandbox=self.config['apn']['sandbox'],
+        client = APNsClient(self.config['apns']['certificate_pem'],
+                            use_sandbox=self.config['apns']['sandbox'],
                             use_alternative_port=False)
         client.send_notification(apns_token, payload)
