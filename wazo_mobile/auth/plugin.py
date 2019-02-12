@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class MobilePostSchema(schemas.BaseSchema):
 
     token = fields.String(min=1, max=512)
-    apns_token = fields.String()
+    apns_token = fields.String(allow_none=True)
 
 
 class MobileAuth(http.AuthResource):
