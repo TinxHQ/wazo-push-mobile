@@ -154,6 +154,7 @@ class PushNotification(object):
                     registration_id=self.token,
                     message_title=message_title,
                     message_body=message_body,
+                    badge=1,
                     extra_notification_kwargs=dict(android_channel_id=channel_id),
                     data_message=data)
 
