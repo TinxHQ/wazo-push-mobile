@@ -53,7 +53,7 @@ class Service:
             if name == 'call_push_notification':
                 msg = dict(notification_type='incomingCall', items=data)
 
-            if name == 'chat_message_received':
+            if name == 'chatd_user_room_message_created':
                 msg = dict(notification_type='messageReceived', items=data)
 
             if msg:
@@ -67,7 +67,12 @@ class Service:
             subscription = self.subscription_service.create({
                 'name': 'Push notification mobile for user {}'.format(user_uuid),
                 'service': 'mobile',
-                'events': ['call_created', 'chat_message_received', 'call_push_notification', 'user_voicemail_message_created'],
+                'events': [
+                    'call_created',
+                    'chatd_user_room_message_created',
+                    'call_push_notification',
+                    'user_voicemail_message_created'
+                ],
                 'events_user_uuid': user_uuid,
                 'owner_user_uuid': user_uuid,
                 'config': {},
