@@ -12,3 +12,4 @@ homepage: http://www.wazo.io
 debian_depends:
   - python3-pyfcm
   - python3-pyapns2
+  - python3-hyper
