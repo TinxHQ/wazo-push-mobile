@@ -56,7 +56,7 @@ class MobileAuth(http.AuthResource):
     def _new_get_response(data):
         return {
             'token': data.get('token'),
-            'apns_token': args.get('apns_token')
+            'apns_token': data.get('apns_token')
         }, 200
 
 
