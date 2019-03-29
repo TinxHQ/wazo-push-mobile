@@ -136,8 +136,8 @@ class PushNotification(object):
             channel_id = 'wazo-notification-voicemail'
 
         if is_message:
-            message_title = data['data']['alias']
-            message_body = data['data']['content']
+            message_title = data['items']['alias']
+            message_body = data['items']['content']
             channel_id = 'wazo-notification-chat'
 
         if self.apns_token and channel_id == 'wazo-notification-call':
