@@ -38,10 +38,10 @@ class Service:
         @celery_app.task
         def mobile_push_notification(subscription, event):
             user_uuid = subscription.get('events_user_uuid')
-            data = self.get_external_token(user_uuid)
+            data, external_config = self.get_external_token(user_uuid)
             token = data.get('token')
             apns_token = data.get('apns_token')
-            push = PushNotification(token, self.config, apns_token)
+            push = PushNotification(token, self.config, apns_token, external_config)
 
             msg = None
             data = event.get('data')
@@ -96,26 +96,35 @@ class Service:
 
     def get_external_token(self, user_uuid):
         token = None
+        external_config = None
         auth = Auth(self.config['auth']['host'], verify_certificate=False, token=self.token['token'])
         try:
             token = auth.external.get('mobile', user_uuid)
+            tenant_uuid = auth.users.get(user_uuid).get('tenant_uuid')
+            external_config = self._get_external_config(auth, tenant_uuid)
         except:
             self.token = self.get_token()
             auth = Auth(self.config['auth']['host'], verify_certificate=False, token=self.token['token'])
             token = auth.external.get('mobile', user_uuid)
+            tenant_uuid = auth.users.get(user_uuid).get('tenant_uuid')
+            external_config = self._get_external_config(auth, tenant_uuid)
 
-        return token
+        return (token, external_config)
 
     def callback(self):
         return self._callback
 
+    def _get_external_config(self, auth, tenant_uuid):
+        return auth.external.get_config('mobile', tenant_uuid)
+
 
 class PushNotification(object):
 
-    def __init__(self, external_token, config, apns_token):
+    def __init__(self, external_token, config, apns_token, external_config):
         self.config = config
         self.token = external_token
         self.apns_token = apns_token
+        self.external_config = external_config
 
     def send_notification(self, data):
         message_title = None
@@ -146,7 +155,7 @@ class PushNotification(object):
             self._send_via_fcm(message_title, message_body, channel_id, data)
 
     def _send_via_fcm(self, message_title, message_body, channel_id, data):
-        push_service = FCMNotification(api_key=self.config['fcm']['api_key'])
+        push_service = FCMNotification(api_key=self.external_config['fcm_api_key'])
 
         if (message_title and message_body):
 
