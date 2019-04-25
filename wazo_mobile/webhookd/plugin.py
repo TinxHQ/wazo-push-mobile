@@ -96,18 +96,21 @@ class Service:
 
     def get_external_token(self, user_uuid):
         token = None
-        external_config = None
         auth = Auth(self.config['auth']['host'], verify_certificate=False, token=self.token['token'])
         try:
             token = auth.external.get('mobile', user_uuid)
-            tenant_uuid = auth.users.get(user_uuid).get('tenant_uuid')
-            external_config = self._get_external_config(auth, tenant_uuid)
         except:
             self.token = self.get_token()
             auth = Auth(self.config['auth']['host'], verify_certificate=False, token=self.token['token'])
             token = auth.external.get('mobile', user_uuid)
-            tenant_uuid = auth.users.get(user_uuid).get('tenant_uuid')
-            external_config = self._get_external_config(auth, tenant_uuid)
+
+        tenant_uuid = auth.users.get(user_uuid).get('tenant_uuid')
+        external_config = self._get_external_config(auth, tenant_uuid)
+        external_config['ios_apns_cert'] = '/tmp/ios.pem'
+
+        with open(external_config['ios_apns_cert'], 'w') as cert:
+            cert.write(external_config.get('ios_apn_certificate'))
+            cert.write(external_config.get('ios_apn_private'))
 
         return (token, external_config)
 
@@ -177,7 +180,7 @@ class PushNotification(object):
 
     def _send_via_apn(self, apns_token, data):
         payload = Payload(alert=data, sound="default", badge=1)
-        client = APNsClient(self.config['apns']['certificate_pem'],
-                            use_sandbox=self.config['apns']['sandbox'],
+        client = APNsClient(self.external_config['ios_apns_cert'],
+                            use_sandbox=self.external_config['is_sandbox'],
                             use_alternative_port=False)
         client.send_notification(apns_token, payload)

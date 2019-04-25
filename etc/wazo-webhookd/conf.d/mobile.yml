@@ -2,9 +2,6 @@ enabled_services:
   mobile: true
 
 mobile:
-  apns:
-    certificate_pem: /etc/wazo-webhookd/conf.d/apple_voip_push.pem
-    sandbox: false
   auth:
     host: localhost
     username:
