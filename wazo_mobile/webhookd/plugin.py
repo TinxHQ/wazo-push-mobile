@@ -38,6 +38,9 @@ class Service:
         @celery_app.task
         def mobile_push_notification(subscription, event):
             user_uuid = subscription.get('events_user_uuid')
+            if event['name'] == 'chatd_user_room_message_created' and event['data']['user_uuid'] == user_uuid:
+                return
+
             data, external_config = self.get_external_token(user_uuid)
             token = data.get('token')
             apns_token = data.get('apns_token')
