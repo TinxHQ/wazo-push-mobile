@@ -40,6 +40,8 @@ class Service:
             user_uuid = subscription.get('events_user_uuid')
             if event['name'] == 'chatd_user_room_message_created' and event['data']['user_uuid'] == user_uuid:
                 return
+            if event['name'] == 'call_created' and event['data']['user_uuid'] == user_uuid:
+                return
 
             data, external_config = self.get_external_token(user_uuid)
             token = data.get('token')
