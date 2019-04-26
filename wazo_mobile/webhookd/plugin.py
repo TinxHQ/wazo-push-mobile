@@ -188,4 +188,4 @@ class PushNotification(object):
         client = APNsClient(self.external_config['ios_apns_cert'],
                             use_sandbox=self.external_config['is_sandbox'],
                             use_alternative_port=False)
-        client.send_notification(apns_token, payload)
+        client.send_notification(apns_token, payload, 'io.wazo.songbird.voip')
