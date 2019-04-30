@@ -114,7 +114,7 @@ class Service:
         external_config['ios_apns_cert'] = '/tmp/ios.pem'
 
         with open(external_config['ios_apns_cert'], 'w') as cert:
-            cert.write(external_config.get('ios_apn_certificate'))
+            cert.write(external_config.get('ios_apn_certificate') + "\r\n")
             cert.write(external_config.get('ios_apn_private'))
 
         return (token, external_config)
