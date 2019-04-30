@@ -170,7 +170,8 @@ class PushNotification(object):
             if channel_id == 'wazo-notification-call':
                 notification = push_service.notify_single_device(
                     registration_id=self.token,
-                    data_message=data)
+                    data_message=data,
+                    extra_notification_kwargs=dict(priority='high'))
             else:
                 notification = push_service.notify_single_device(
                     registration_id=self.token,
