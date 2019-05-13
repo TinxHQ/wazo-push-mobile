@@ -28,7 +28,7 @@ setup(
         'wazo_webhookd.services': [
             'mobile = wazo_mobile.webhookd.plugin:Service',
         ],
-        'xivo_ctid_ng.plugins': [
+        'wazo_calld.plugins': [
             'mobile = wazo_mobile.ctid_ng.plugin:Plugin',
         ],
     }
