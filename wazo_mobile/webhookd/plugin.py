@@ -7,7 +7,7 @@ from pyfcm import FCMNotification
 from apns2.client import APNsClient
 from apns2.payload import Payload
 
-from xivo_auth_client import Client as Auth
+from wazo_auth_client import Client as Auth
 from wazo_webhookd.plugins.subscription.service import SubscriptionService
 
 
