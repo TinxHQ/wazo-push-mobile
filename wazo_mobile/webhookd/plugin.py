@@ -4,11 +4,14 @@
 import logging
 import uuid
 from pyfcm import FCMNotification
+from pyfcm.errors import RetryAfterException
 from apns2.client import APNsClient
+from apns2 import errors as apns2_errors
 from apns2.payload import Payload
 
 from wazo_auth_client import Client as Auth
 from wazo_webhookd.plugins.subscription.service import SubscriptionService
+from wazo_webhookd.services.helpers import HookRetry
 
 
 logging.basicConfig()
@@ -125,7 +128,7 @@ class Service:
             msg = dict(notification_type='messageReceived', items=data)
 
         if msg:
-            push.send_notification(msg)
+            return push.send_notification(msg)
 
 
 class PushNotification(object):
@@ -160,9 +163,16 @@ class PushNotification(object):
             channel_id = 'wazo-notification-chat'
 
         if self.apns_token and channel_id == 'wazo-notification-call':
-            self._send_via_apn(self.apns_token, data)
+            try:
+                return self._send_via_apn(self.apns_token, data)
+            except (apns2_errors.ServiceUnavailable,
+                    apns2_errors.InternalServerError) as e:
+                raise HookRetry({"error": str(e)})
         else:
-            self._send_via_fcm(message_title, message_body, channel_id, data)
+            try:
+                return self._send_via_fcm(message_title, message_body, channel_id, data)
+            except RetryAfterException as e:
+                raise HookRetry({"error": str(e)})
 
     def _send_via_fcm(self, message_title, message_body, channel_id, data):
         push_service = FCMNotification(api_key=self.external_config['fcm_api_key'])
@@ -185,6 +195,7 @@ class PushNotification(object):
 
             if notification.get('failure') != 0:
                 logger.error('Error to send push notification', notification)
+            return notification
 
     def _send_via_apn(self, apns_token, data):
         payload = Payload(alert=data, sound="default", badge=1)
