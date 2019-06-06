@@ -25,11 +25,13 @@ class Service:
         self.token = self.get_token()
         bus_consumer.subscribe_to_event_names(uuid=uuid.uuid4(),
                                               event_names=['auth_user_external_auth_added'],
+                                              # tenant_uuid=None,
                                               user_uuid=None,
                                               wazo_uuid=None,
                                               callback=self.on_external_auth_added)
         bus_consumer.subscribe_to_event_names(uuid=uuid.uuid4(),
                                               event_names=['auth_user_external_auth_deleted'],
+                                              # tenant_uuid=None,
                                               user_uuid=None,
                                               wazo_uuid=None,
                                               callback=self.on_external_auth_deleted)
@@ -38,9 +40,12 @@ class Service:
         @celery_app.task
         def mobile_push_notification(subscription, event):
             user_uuid = subscription.get('events_user_uuid')
-            if event['name'] == 'chatd_user_room_message_created' and event['data']['user_uuid'] == user_uuid:
-                return
-            if event['name'] == 'call_created' and event['data']['user_uuid'] == user_uuid:
+            # TODO(sileht): We should also filter on tenant_uuid
+            # tenant_uuid = subscription.get('events_tenant_uuid')
+            if (event['data']['user_uuid'] == user_uuid
+                    # and event['data']['tenant_uuid'] == tenant_uuid
+                    and event['name'] in ['chatd_user_room_message_created',
+                                          'call_created']):
                 return
 
             data, external_config = self.get_external_token(user_uuid)
@@ -69,8 +74,10 @@ class Service:
     def on_external_auth_added(self, body, event):
         if body['data'].get('external_auth_name') == 'mobile':
             user_uuid = body['data']['user_uuid']
-            subscription = self.subscription_service.create({
-                'name': 'Push notification mobile for user {}'.format(user_uuid),
+            tenant_uuid = body['data']['tenant_uuid']
+            self.subscription_service.create({
+                'name': ('Push notification mobile for user '
+                         '{}/{}'.format(tenant_uuid, user_uuid)),
                 'service': 'mobile',
                 'events': [
                     'call_created',
@@ -79,7 +86,9 @@ class Service:
                     'user_voicemail_message_created'
                 ],
                 'events_user_uuid': user_uuid,
+                # 'events_tenant_uuid': tenant_uuid,
                 'owner_user_uuid': user_uuid,
+                'owner_tenant_uuid': tenant_uuid,
                 'config': {},
                 'metadata': {'mobile': 'true'},
             })
@@ -87,9 +96,14 @@ class Service:
     def on_external_auth_deleted(self, body, event):
         if body['data'].get('external_auth_name') == 'mobile':
             user_uuid = body['data']['user_uuid']
-            subscriptions = self.subscription_service.list(owner_user_uuid=user_uuid, search_metadata={'mobile': 'true'})
+            tenant_uuid = body['data']['tenant_uuid']
+            subscriptions = self.subscription_service.list(
+                owner_user_uuid=user_uuid,
+                owner_tenant_uuids=[tenant_uuid],
+                search_metadata={'mobile': 'true'},
+            )
             for subscription in subscriptions:
-                self.subscription_service.delete(subscription.uuid)
+                self.subscription_service.delete(subscription.uuid, [tenant_uuid])
 
     def get_token(self):
         auth = Auth(
