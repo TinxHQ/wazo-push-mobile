@@ -36,7 +36,7 @@ class Service:
                                               user_uuid=None,
                                               wazo_uuid=None,
                                               callback=self.on_external_auth_deleted)
-        print('Mobile push notification plugin is started')
+        logger.info('Mobile push notification plugin is started')
 
     def on_external_auth_added(self, body, event):
         if body['data'].get('external_auth_name') == 'mobile':
