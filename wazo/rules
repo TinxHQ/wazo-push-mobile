@@ -15,14 +15,14 @@ case "$1" in
     install)
 	systemctl restart wazo-auth
 	systemctl restart wazo-webhookd
-	systemctl restart xivo-ctid-ng
+	systemctl restart wazo-calld
 	asterisk -rx 'dialplan reload'
     ;;
 
     uninstall)
 	systemctl restart wazo-auth
 	systemctl restart wazo-webhookd
-	systemctl restart xivo-ctid-ng
+	systemctl restart wazo-calld
 	asterisk -rx 'dialplan reload'
     ;;
 

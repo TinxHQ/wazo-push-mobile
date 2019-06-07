@@ -29,7 +29,7 @@ setup(
             'mobile = wazo_mobile.webhookd.plugin:Service',
         ],
         'wazo_calld.plugins': [
-            'mobile = wazo_mobile.ctid_ng.plugin:Plugin',
+            'mobile = wazo_mobile.calld.plugin:Plugin',
         ],
     }
 )
