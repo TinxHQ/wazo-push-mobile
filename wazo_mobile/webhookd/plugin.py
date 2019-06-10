@@ -22,8 +22,8 @@ class Service:
 
     def load(self, dependencies):
         bus_consumer = dependencies['bus_consumer']
-        self.config = dependencies['config']['mobile']
-        self.subscription_service = SubscriptionService(dependencies['config'])
+        self._config = dependencies['config']
+        self.subscription_service = SubscriptionService(self._config)
         bus_consumer.subscribe_to_event_names(uuid=uuid.uuid4(),
                                               event_names=['auth_user_external_auth_added'],
                                               # tenant_uuid=None,
@@ -41,7 +41,8 @@ class Service:
     def on_external_auth_added(self, body, event):
         if body['data'].get('external_auth_name') == 'mobile':
             user_uuid = body['data']['user_uuid']
-            tenant_uuid = body['data']['tenant_uuid']
+            # TODO(sileht): Should come with the event
+            tenant_uuid = self.get_tenant_uuid(user_uuid)
             self.subscription_service.create({
                 'name': ('Push notification mobile for user '
                          '{}/{}'.format(tenant_uuid, user_uuid)),
@@ -59,34 +60,43 @@ class Service:
                 'config': {},
                 'metadata': {'mobile': 'true'},
             })
+            logger.info('User registered: %s/%s', tenant_uuid, user_uuid)
 
     def on_external_auth_deleted(self, body, event):
         if body['data'].get('external_auth_name') == 'mobile':
             user_uuid = body['data']['user_uuid']
-            tenant_uuid = body['data']['tenant_uuid']
+            # TODO(sileht): Should come with the event
+            tenant_uuid = self.get_tenant_uuid(user_uuid)
             subscriptions = self.subscription_service.list(
                 owner_user_uuid=user_uuid,
                 owner_tenant_uuids=[tenant_uuid],
                 search_metadata={'mobile': 'true'},
             )
             for subscription in subscriptions:
-                self.subscription_service.delete(subscription.uuid, [tenant_uuid])
+                self.subscription_service.delete(subscription.uuid)
+            logger.info('User unregistered: %s/%s', tenant_uuid, user_uuid)
+
+    def get_tenant_uuid(self, user_uuid):
+        auth = self.get_auth(self._config)
+        return auth.users.get(user_uuid)["tenant_uuid"]
 
     @classmethod
-    def get_token(cls, config):
-        auth = Auth(
-            config['auth']['host'],
-            username=config['auth']['username'],
-            password=config['auth']['password'],
-            verify_certificate=False)
-        return auth.token.new('wazo_user', expiration=3600)
+    def get_auth(cls, config):
+        auth = Auth(config['mobile']['auth']['host'],
+                    username=config['mobile']['auth']['username'],
+                    password=config['mobile']['auth']['password'],
+                    verify_certificate=False)
+        token = auth.token.new('wazo_user', expiration=3600)
+        auth.set_token(token["token"])
+        auth.username = None
+        auth.password = None
+        return auth
 
     @classmethod
     def get_external_token(cls, config, user_uuid):
-        auth = Auth(config['auth']['host'], verify_certificate=False,
-                    token=cls.get_token(config))
+        auth = cls.get_auth(config)
         token = auth.external.get('mobile', user_uuid)
-        tenant_uuid = auth.users.get(user_uuid).get('tenant_uuid')
+        tenant_uuid = auth.users.get(user_uuid)['tenant_uuid']
         external_config = auth.external.get_config('mobile', tenant_uuid)
         external_config['ios_apns_cert'] = '/tmp/ios.pem'
 
@@ -98,8 +108,6 @@ class Service:
 
     @classmethod
     def run(cls, task, config, subscription, event):
-        config = config['mobile']
-
         user_uuid = subscription.get('events_user_uuid')
         # TODO(sileht): We should also filter on tenant_uuid
         # tenant_uuid = subscription.get('events_tenant_uuid')
@@ -109,10 +117,10 @@ class Service:
                                       'call_created']):
             return
 
-        data, external_config = cls.get_external_token(config, user_uuid)
+        data, external_config = cls.get_external_token(config['mobile'], user_uuid)
         token = data.get('token')
         apns_token = data.get('apns_token')
-        push = PushNotification(token, config, apns_token, external_config)
+        push = PushNotification(token, apns_token, external_config)
 
         msg = None
         data = event.get('data')
@@ -133,8 +141,7 @@ class Service:
 
 class PushNotification(object):
 
-    def __init__(self, external_token, config, apns_token, external_config):
-        self.config = config
+    def __init__(self, external_token, apns_token, external_config):
         self.token = external_token
         self.apns_token = apns_token
         self.external_config = external_config
