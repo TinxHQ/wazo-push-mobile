@@ -105,10 +105,10 @@ class Service:
 
     @classmethod
     def run(cls, task, config, subscription, event):
-        user_uuid = subscription.get('events_user_uuid')
+        user_uuid = subscription['events_user_uuid']
         # TODO(sileht): We should also filter on tenant_uuid
         # tenant_uuid = subscription.get('events_tenant_uuid')
-        if (event['data']['user_uuid'] == user_uuid
+        if (event['data'].get('user_uuid') == user_uuid
                 # and event['data']['tenant_uuid'] == tenant_uuid
                 and event['name'] in ['chatd_user_room_message_created',
                                       'call_created']):
