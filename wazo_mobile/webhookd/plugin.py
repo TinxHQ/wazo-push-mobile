@@ -203,7 +203,7 @@ class PushNotification(object):
                     data_message=data)
 
             if notification.get('failure') != 0:
-                logger.error('Error to send push notification', notification)
+                logger.error('Error to send push notification: %s', notification)
             return notification
 
     def _send_via_apn(self, apns_token, data):
