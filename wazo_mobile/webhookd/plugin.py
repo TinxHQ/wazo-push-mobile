@@ -82,10 +82,7 @@ class Service:
 
     @classmethod
     def get_auth(cls, config):
-        auth = Auth(config['mobile']['auth']['host'],
-                    username=config['mobile']['auth']['username'],
-                    password=config['mobile']['auth']['password'],
-                    verify_certificate=False)
+        auth = Auth(**config['auth'])
         token = auth.token.new('wazo_user', expiration=3600)
         auth.set_token(token["token"])
         auth.username = None
