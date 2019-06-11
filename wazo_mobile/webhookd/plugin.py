@@ -9,7 +9,7 @@ from apns2.client import APNsClient
 from apns2 import errors as apns2_errors
 from apns2.payload import Payload
 
-from wazo_auth_client import Client as Auth
+from wazo_auth_client import Client as AuthClient
 from wazo_webhookd.plugins.subscription.service import SubscriptionService
 from wazo_webhookd.services.helpers import HookRetry
 
@@ -82,7 +82,10 @@ class Service:
 
     @classmethod
     def get_auth(cls, config):
-        auth = Auth(**config['auth'])
+        auth_config = dict(config['auth'])
+        # FIXME(sileht): Keep the certificate
+        auth_config['verify_certificate'] = False
+        auth = AuthClient(**auth_config)
         token = auth.token.new('wazo_user', expiration=3600)
         auth.set_token(token["token"])
         auth.username = None
@@ -95,11 +98,13 @@ class Service:
         token = auth.external.get('mobile', user_uuid)
         tenant_uuid = auth.users.get(user_uuid)['tenant_uuid']
         external_config = auth.external.get_config('mobile', tenant_uuid)
-        external_config['ios_apns_cert'] = '/tmp/ios.pem'
 
-        with open(external_config['ios_apns_cert'], 'w') as cert:
-            cert.write(external_config.get('ios_apn_certificate') + "\r\n")
-            cert.write(external_config.get('ios_apn_private'))
+        if token["apns_token"]:
+            external_config['ios_apns_cert'] = '/tmp/ios.pem'
+
+            with open(external_config['ios_apns_cert'], 'w') as cert:
+                cert.write(external_config['ios_apn_certificate'] + "\r\n")
+                cert.write(external_config['ios_apn_private'])
 
         return (token, external_config)
 
@@ -115,8 +120,8 @@ class Service:
             return
 
         data, external_config = cls.get_external_token(config['mobile'], user_uuid)
-        token = data.get('token')
-        apns_token = data.get('apns_token')
+        token = data['token']
+        apns_token = data['apns_token']
         push = PushNotification(token, apns_token, external_config)
 
         msg = None
