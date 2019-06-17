@@ -1,8 +1,2 @@
 enabled_services:
   mobile: true
-
-mobile:
-  auth:
-    host: localhost
-    username:
-    password:
