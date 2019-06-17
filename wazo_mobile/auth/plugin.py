@@ -9,7 +9,6 @@ from flask import request
 from xivo.mallow import fields
 from wazo_auth import exceptions, http, schemas
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -17,6 +16,22 @@ class MobilePostSchema(schemas.BaseSchema):
 
     token = fields.String(min=1, max=512)
     apns_token = fields.String(allow_none=True)
+
+
+class MobileAuthSenderID(http.AuthResource):
+
+    auth_type = 'mobile'
+
+    def __init__(self, external_auth_service, user_service):
+        self.external_auth_service = external_auth_service
+        self.user_service = user_service
+
+    @http.required_acl('auth.users.{user_uuid}.external.mobile.read')
+    def get(self, user_uuid):
+        user = self.user_service.get_user(user_uuid)
+        config = self.external_auth_service.get_config(self.auth_type,
+                                                       user['tenant_uuid'])
+        return {"sender_id": config.get('fcm_sender_id')}, 200
 
 
 class MobileAuth(http.AuthResource):
@@ -49,7 +64,6 @@ class MobileAuth(http.AuthResource):
             'apns_token': args.get('apns_token')
         }
         self.external_auth_service.create(user_uuid, self.auth_type, data)
-
         return data, 201
 
     @staticmethod
@@ -64,8 +78,14 @@ class Plugin(object):
 
     def load(self, dependencies):
         api = dependencies['api']
-        args = (dependencies['external_auth_service'], dependencies['config'])
-
-        api.add_resource(MobileAuth,
-            '/users/<uuid:user_uuid>/external/mobile',
-            resource_class_args=args)
+        api.add_resource(MobileAuth, '/users/<uuid:user_uuid>/external/mobile',
+                         resource_class_args=[
+                             dependencies['external_auth_service'],
+                             dependencies['config']
+                         ])
+        api.add_resource(MobileAuthSenderID,
+                         '/users/<uuid:user_uuid>/external/mobile/sender_id',
+                         resource_class_args=[
+                             dependencies['external_auth_service'],
+                             dependencies['user_service'],
+                         ])
