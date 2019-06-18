@@ -119,7 +119,7 @@ class Service:
                                       'call_created']):
             return
 
-        data, external_config = cls.get_external_token(config['mobile'], user_uuid)
+        data, external_config = cls.get_external_token(config, user_uuid)
         token = data['token']
         apns_token = data['apns_token']
         push = PushNotification(token, apns_token, external_config)
