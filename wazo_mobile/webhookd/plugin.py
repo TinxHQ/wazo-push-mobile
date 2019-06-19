@@ -48,7 +48,6 @@ class Service:
                          '{}/{}'.format(tenant_uuid, user_uuid)),
                 'service': 'mobile',
                 'events': [
-                    'call_created',
                     'chatd_user_room_message_created',
                     'call_push_notification',
                     'user_voicemail_message_created'
@@ -115,8 +114,7 @@ class Service:
         # tenant_uuid = subscription.get('events_tenant_uuid')
         if (event['data'].get('user_uuid') == user_uuid
                 # and event['data']['tenant_uuid'] == tenant_uuid
-                and event['name'] in ['chatd_user_room_message_created',
-                                      'call_created']):
+                and event['name'] in ['chatd_user_room_message_created']):
             return
 
         data, external_config = cls.get_external_token(config, user_uuid)
